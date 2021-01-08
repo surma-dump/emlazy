@@ -1,5 +1,13 @@
 <!DOCTYPE html>
-<canvas id="cvs"></canvas>
+<style>
+  img {
+    width: 100%;
+    height: auto;
+    image-rendering: pixelated;
+    outline: 1px solid red;
+  }
+</style>
+<img id="img" />
 <script>
   const worker = new Worker("./worker.js");
   worker.addEventListener("message", ({ data }) => {
@@ -7,10 +15,6 @@
       console.error("Something went wrong");
       return;
     }
-    const { cvs } = document.all;
-    const ctx = cvs.getContext("2d");
-    cvs.width = data.width;
-    cvs.height = data.height;
-    ctx.putImageData(data, 0, 0);
+    document.all.img.src = URL.createObjectURL(data);
   });
 </script>

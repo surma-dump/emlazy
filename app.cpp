@@ -9,7 +9,8 @@ using namespace emscripten;
 
 typedef DynArr (*EncodeFunc)(std::string img, int width, int height);
 
-thread_local const val Uint8Array = val::global("Uint8Array");
+val Uint8Array = val::global("Uint8Array");
+val Blob = val::global("Blob");
 
 std::string data =
     std::string("\xff\x00\x00\xff") + std::string("\x00\xff\x00\xff") +
@@ -18,10 +19,13 @@ std::string data =
 val mymain() {
   double r = val::global("Math").call<double>("random");
   void *handle;
+  std::string mimetype;
   if (r > 0.5) {
     handle = dlopen("/jpeg.wasm", RTLD_LAZY);
+    mimetype = "image/jpeg";
   } else {
     handle = dlopen("/webp.wasm", RTLD_LAZY);
+    mimetype = "image/webp";
   }
   EncodeFunc encode = (EncodeFunc)dlsym(handle, "encode");
   if (encode == NULL) {
@@ -33,9 +37,15 @@ val mymain() {
 
   auto js_result = val::null();
   if (result.size != 0) {
-    js_result = Uint8Array.new_(typed_memory_view(result.size, result.buffer));
+    auto buffer =
+        Uint8Array.new_(typed_memory_view(result.size, result.buffer));
+    free(result.buffer);
+    auto segments = val::array();
+    segments.call<double>("push", buffer);
+    auto options = val::object();
+    options.set("type", mimetype);
+    js_result = Blob.new_(segments, options);
   }
-  free(result.buffer);
 
   return js_result;
 }

@@ -18,7 +18,9 @@ Module({
       true /* can read */,
       false /* can write */
     );
-    var result = this.mymain();
-    postMessage(result);
+    setTimeout(() => {
+      var result = this.mymain();
+      postMessage(result);
+    }, 4);
   }
 });
