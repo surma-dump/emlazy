@@ -18,9 +18,10 @@ Module({
       true /* can read */,
       false /* can write */
     );
-    setTimeout(() => {
-      var result = this.mymain();
+    addEventListener("message", ({ data }) => {
+      const { format, image } = data;
+      const result = this.mymain(format, image.data, image.width, image.height);
       postMessage(result);
-    }, 4);
+    });
   }
 });

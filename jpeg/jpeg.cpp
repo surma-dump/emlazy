@@ -37,7 +37,7 @@ extern "C" DynArr encode(std::string image_in, int image_width,
   cinfo.input_components = 4;
   cinfo.in_color_space = JCS_EXT_RGBA;
   jpeg_set_defaults(&cinfo);
-  jpeg_set_quality(&cinfo, 20, TRUE);
+  jpeg_set_quality(&cinfo, 1, TRUE);
   jpeg_start_compress(&cinfo, TRUE);
 
   int row_stride = image_width * 4;

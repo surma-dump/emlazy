@@ -12,27 +12,23 @@ typedef DynArr (*EncodeFunc)(std::string img, int width, int height);
 val Uint8Array = val::global("Uint8Array");
 val Blob = val::global("Blob");
 
-std::string data =
-    std::string("\xff\x00\x00\xff") + std::string("\x00\xff\x00\xff") +
-    std::string("\x00\x00\xff\xff") + std::string("\xff\xff\xff\xff");
-
-val mymain() {
+val mymain(std::string format, std::string img, int width, int height) {
   double r = val::global("Math").call<double>("random");
   void *handle;
   std::string mimetype;
-  if (r > 0.5) {
+  if (format == "jpeg") {
     handle = dlopen("/jpeg.wasm", RTLD_LAZY);
-    mimetype = "image/jpeg";
-  } else {
+  } else if (format == "webp") {
     handle = dlopen("/webp.wasm", RTLD_LAZY);
-    mimetype = "image/webp";
+  } else {
+    return val::null();
   }
   EncodeFunc encode = (EncodeFunc)dlsym(handle, "encode");
   if (encode == NULL) {
     printf("Error: %s\n", dlerror());
     return val::null();
   }
-  DynArr result = encode(data, 2, 2);
+  DynArr result = encode(img, width, height);
   dlclose(handle);
 
   auto js_result = val::null();
@@ -43,7 +39,7 @@ val mymain() {
     auto segments = val::array();
     segments.call<double>("push", buffer);
     auto options = val::object();
-    options.set("type", mimetype);
+    options.set("type", "image/" + format);
     js_result = Blob.new_(segments, options);
   }
 

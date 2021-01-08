@@ -1,20 +1,49 @@
 <!DOCTYPE html>
 <style>
-  img {
+  img, canvas {
     width: 100%;
-    height: auto;
+    height: auto
     image-rendering: pixelated;
     outline: 1px solid red;
   }
 </style>
-<img id="img" />
+<fieldset>
+  <legend>Input image</legend>
+  <input type="file" id="file" />
+  <button id="jpeg">Ugly JPEG</button>
+  <button id="webp">Ugly WebP</button>
+</fieldset>
+<fieldset>
+  <legend>Result</legend>
+  <img id="img" />
+</fieldset>
 <script>
   const worker = new Worker("./worker.js");
-  worker.addEventListener("message", ({ data }) => {
-    if (!data) {
-      console.error("Something went wrong");
+  const { img, file } = document.all;
+  document.addEventListener("click", async ev => {
+    if (ev.target.nodeName !== "BUTTON") {
       return;
     }
-    document.all.img.src = URL.createObjectURL(data);
+    const format = ev.target.id;
+    const infile = file.files[0];
+    const bitmap = await createImageBitmap(infile);
+    const cvs = document.createElement("canvas");
+    cvs.width = bitmap.width;
+    cvs.height = bitmap.height;
+    const ctx = cvs.getContext("2d");
+    ctx.drawImage(bitmap, 0, 0);
+    const image = ctx.getImageData(0, 0, cvs.width, cvs.height);
+    worker.postMessage({ format, image });
+    worker.addEventListener(
+      "message",
+      ({ data }) => {
+        if (!data) {
+          console.error("Something went wrong");
+          return;
+        }
+        img.src = URL.createObjectURL(data);
+      },
+      { once: true }
+    );
   });
 </script>
