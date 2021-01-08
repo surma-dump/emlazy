@@ -1,14 +1,15 @@
-#include "src/webp/encode.h"
 #include <emscripten/val.h>
 #include <stdexcept>
 #include <stdlib.h>
 #include <string.h>
 
+#include "src/webp/encode.h"
+
+#include "dynarr.h"
+
 using namespace emscripten;
 
-thread_local const val Uint8Array = val::global("Uint8Array");
-
-val encode(std::string img, int width, int height) {
+extern "C" DynArr encode(std::string img, int width, int height) {
   auto img_in = (uint8_t *)img.c_str();
   WebPConfig config;
 
@@ -19,7 +20,7 @@ val encode(std::string img, int width, int height) {
 
   if (!WebPPictureInit(&pic)) {
     // shouldn't happen, except if system installation is broken
-    return val::null();
+    return DynArr{0, nullptr};
   }
 
   // Allow quality to go higher than 0.
@@ -35,9 +36,13 @@ val encode(std::string img, int width, int height) {
 
   ok = WebPPictureImportRGBA(&pic, img_in, width * 4) &&
        WebPEncode(&config, &pic);
+  if (!ok) {
+    return DynArr{0, nullptr};
+  }
   WebPPictureFree(&pic);
-  val js_result =
-      ok ? Uint8Array.new_(typed_memory_view(wrt.size, wrt.mem)) : val::null();
+  uint8_t *buffer = (uint8_t *)malloc(wrt.size);
+  memcpy(buffer, wrt.mem, wrt.size);
   WebPMemoryWriterClear(&wrt);
-  return js_result;
+
+  return DynArr{wrt.size, buffer};
 }

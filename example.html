@@ -1,4 +1,16 @@
 <!DOCTYPE html>
+<canvas id="cvs"></canvas>
 <script>
-  new Worker("./worker.js");
+  const worker = new Worker("./worker.js");
+  worker.addEventListener("message", ({ data }) => {
+    if (!data) {
+      console.error("Something went wrong");
+      return;
+    }
+    const { cvs } = document.all;
+    const ctx = cvs.getContext("2d");
+    cvs.width = data.width;
+    cvs.height = data.height;
+    ctx.putImageData(data, 0, 0);
+  });
 </script>

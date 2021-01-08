@@ -17,7 +17,6 @@ $(OUT): jpeg.cpp
 		-I $(CODEC_DIR) \
 		${CXXFLAGS} \
 		${LDFLAGS} \
-		--bind \
 		-s ALLOW_MEMORY_GROWTH=1 \
 		-s MODULARIZE=1 \
 		-s ENVIRONMENT=$(ENVIRONMENT) \

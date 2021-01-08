@@ -1,5 +1,4 @@
-#include "config.h"
-#include "jpeglib.h"
+#include <cstdlib>
 #include <emscripten/val.h>
 #include <inttypes.h>
 #include <setjmp.h>
@@ -7,15 +6,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "config.h"
+#include "dynarr.h"
+#include "jpeglib.h"
+
 extern "C" {
 #include "cdjpeg.h"
 }
 
 using namespace emscripten;
 
-thread_local const val Uint8Array = val::global("Uint8Array");
-
-val encode(std::string image_in, int image_width, int image_height) {
+extern "C" DynArr encode(std::string image_in, int image_width,
+                         int image_height) {
   uint8_t *image_buffer = (uint8_t *)image_in.c_str();
 
   /*******************************************************************
@@ -53,14 +55,13 @@ val encode(std::string image_in, int image_width, int image_height) {
    * End of copy/paste
    ************************************************************************/
 
-  // This creates a Uint8Array in JS land, meaning we can free our copy
-  // of the compressed image.
-  auto js_result = Uint8Array.new_(typed_memory_view(size, output));
+  uint8_t *buffer = (uint8_t *)malloc(size);
+  memcpy(buffer, output, size);
 
   /* This is an important step since it will release a good deal of memory. */
   jpeg_destroy_compress(&cinfo);
   free(output);
 
   /* And we're done! */
-  return js_result;
+  return DynArr{size, output};
 }

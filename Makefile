@@ -8,11 +8,11 @@ app.js: app.cpp
 		-I $(CODEC_DIR) \
 		${CXXFLAGS} \
 		${LDFLAGS} \
-		--bind \
 		-s ALLOW_MEMORY_GROWTH=1 \
 		-s ENVIRONMENT=worker \
 		-s MAIN_MODULE=1 \
 		-s TEXTDECODER=2 \
+		-s MODULARIZE=1 \
 		-o $@ \
 		$+
 
