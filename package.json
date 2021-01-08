@@ -1,0 +1,14 @@
+{
+  "name": "lazydemo",
+  "version": "0.0.1",
+  "scripts": {
+    "build:jpeg": "cd jpeg && npm run build",
+    "build:webp": "cd webp && npm run build",
+    "build:app": "./build-cpp.sh",
+    "build": "npm run build:jpeg && npm run build:webp && npm run build:app",
+    "serve": "serve ."
+  },
+  "devDependencies": {
+    "serve": "^11.3.2"
+  }
+}
